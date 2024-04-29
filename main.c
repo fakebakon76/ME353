@@ -23,7 +23,7 @@ int main(void)
     DDRD = 0b11111111;     // Sets all bits in Port D to be outputs
     
     setup_ADC();
-    threshold = getADC(1); // Sets the treshold to the potentiometer value
+    threshold = get_ADC(1); // Sets the treshold to the potentiometer value
     
     setup_interrupt();
     
@@ -42,10 +42,10 @@ ISR(TIMER0_OVF_vect)
 }
 
 void setup_interrupt(void) {
-    TCCR0 |= (1 << CS02);  // Select 1024 clock cycles for the interupt
-    TIMSK |= (1 << TOIE0); // Enables the timer interupt 
-    sei();                 // Enables general interupt
-    TCNT0 = 0;             // Sets the timer counter to 0 (i think)
+    TCCR0B |= (1 << CS02);  // Select 1024 clock cycles for the interupt
+    TIMSK0 |= (1 << TOIE0); // Enables the timer interupt 
+    sei();                  // Enables general interupt
+    TCNT0 = 0;              // Sets the timer counter to 0 (i think)
 }
 
 // Sets up ADC
