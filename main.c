@@ -38,7 +38,7 @@ ISR(TIMER0_OVF_vect)
 {
     unsigned int result = get_ADC(0);                  // Get the result of the IR ADC
     TCNT0 = 0;                                         // Reset the timer count to 0
-    PORTD &= (result >= threshold) ? !(1 << 7) : 0xFF; // Set PD1 to 1 if result >= threshold
+    PORTD &= (result >= threshold) ? 0xFE : 0xFF;      // Set PD1 to 1 if result >= threshold
 }
 
 void setup_interrupt(void) {
