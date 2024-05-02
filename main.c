@@ -35,13 +35,12 @@ unsigned int result = 0;
 int main(void) {   
     DDRD |= (1 << M1A) | (1 << M1B) | (1 << M2A) | (1 << M2B);
 
-    setup_ADC();    
+    setup_ADC();
+    setup_PWM();
 
     // Occurs from now till infinity
     while(1) {
-        threshold = get_ADC(1);                                            // gets result of pot threshold
-		result = get_ADC(0);                                               // Get the result of the IR ADC
-		PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
+        OCR1A = 128; // Sets motor speed to half
     }
 }
  
@@ -50,6 +49,13 @@ void setup_ADC(void)
 {
     ADCSRA = (1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // Enable ADC | Set Prescaler Bits (0-2) to 111 (128 ticks of system clock is 1 tick for the ADC (i think))
     ADMUX = (1<<REFS0);                                  // Set voltage reference to AVcc with external cap at AREF pin
+}
+
+// Sets up PWM for Port B1
+void setup_PWM(void) {
+    TCCR1B  |= (1 << CS12); // Sets Prescaler for timer 1 to 256
+    TCCR1A  = (1 << COM1A1) & ~(1 << COM1A0); // Defines that when a match occurrs to update the PWM when the timer goes to 0 again
+    TCCR1A |= (1 << WGM11) | (1 << WGM10); // Turns on fast PWM mode
 }
  
 // Gets the ADC value from analog pin channel
@@ -91,3 +97,4 @@ void change_direction(unsigned int duration, unsigned char direction, unsigned c
 	for(int i = 0; i < duration; i++) _delay_ms(1); 
     PORTD &= (~(1 << M1E) & ~(1 << M2E)); // Turns off the enable
 }
+
