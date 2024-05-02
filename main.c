@@ -29,16 +29,16 @@ int main(void)
     
     // What happens from now till infinity
     while(1) {
-        //threshold = getADC(1);
+        threshold = getADC(1);
     }
 }
 
 // Interupt service routine for timer 0 
 ISR(TIMER0_OVF_vect) 
 {
-    unsigned int result = get_ADC(0);             // Get the result of the IR ADC
-    TCNT0 = 0;                                    // Reset the timer count to 0
-    PORTD |= (result >= threshold) ? 0x00 : 0x01; // Set PD1 to 1 if result >= threshold
+    unsigned int result = get_ADC(0);                  // Get the result of the IR ADC
+    TCNT0 = 0;                                         // Reset the timer count to 0
+    PORTD &= (result >= threshold) ? !(1 << 7) : 0xFF; // Set PD1 to 1 if result >= threshold
 }
 
 void setup_interrupt(void) {
