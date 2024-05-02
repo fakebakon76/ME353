@@ -34,6 +34,7 @@ unsigned int result = 0;
  
 int main(void) {   
     DDRD |= (1 << M1A) | (1 << M1B) | (1 << M2A) | (1 << M2B);
+    DDRB |= (1 << SPEED_PIN);
 
     setup_ADC();
     setup_PWM();
