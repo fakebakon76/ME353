@@ -39,9 +39,13 @@ int main(void) {
     setup_ADC();
     setup_PWM();
 
+    OCR1A = 128; // Sets PWM to 50% duty cycle
+
     // Occurs from now till infinity
     while(1) {
-        OCR1A = 128; // Sets motor speed to half
+        threshold = get_ADC(1);                                            // gets result of pot threshold
+		result = get_ADC(0);                                               // Get the result of the IR ADC
+		PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
     }
 }
  
