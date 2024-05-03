@@ -50,7 +50,7 @@ int main(void) {
             PORTD &= ~(1 << M2E); // turn off right wheel
             change_direction(500, 0x01, 0); // reverse left wheel for half a second and then continue
             change_direction(0, 0x01, 2);   // continue going straight
-        }
+        } else change_direction(0, 0x01, 2);   // continue going straight
     }
 }
  
