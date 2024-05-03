@@ -39,13 +39,18 @@ int main(void) {
     setup_ADC();
     setup_PWM();
 
-    OCR1A = 128; // Sets PWM to 50% duty cycle
+    //OCR1A = 128; // Sets PWM to 50% duty cycle
 
     // Occurs from now till infinity
     while(1) {
         threshold = get_ADC(1);                                            // gets result of pot threshold
 		result = get_ADC(0);                                               // Get the result of the IR ADC
-		PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
+		//PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
+        if(result >= threshold) {
+            PORTD &= ~(1 << M2E); // turn off right wheel
+            change_direction(500, 0x01, 0); // reverse left wheel for half a second and then continue
+            change_direction(0, 0x01, 2);   // continue going straight
+        }
     }
 }
  
@@ -92,14 +97,13 @@ void change_direction(unsigned int duration, unsigned char direction, unsigned c
     if(synchronized == 2) {
         PORTD = ~((~direction << M1A) | (~direction << M2A)); // AND it to get the 0s in place
         PORTD |= (direction << M1A) | (direction << M2A);     // OR it to get the 1s in place
-        PORTD |= (1 << M1E) | (1 << M2E); // Enable
+        return;
     } else {
         PORTD &= synchronized ? ~(direction << M1A) : ~(direction << M2A); // Writes the 1s in the direction
         PORTD |= synchronized ? (direction << M1A) : (direction << M2A); // Writes the 0s in the direction
-		PORTD |= synchronized ? (1 << M1E) : (1 << M2E); // Enables the turning
     }
 
 	for(int i = 0; i < duration; i++) _delay_ms(1); 
-    PORTD &= (~(1 << M1E) & ~(1 << M2E)); // Turns off the enable
+    change_direction(0, 0b11, 2); // break robot
 }
 
