@@ -25,19 +25,25 @@
 #define M2B 5
  
 void setup_ADC(void);
+void setup_pwm(void);
+void setup_timer(void);
 unsigned int get_ADC(unsigned char);
 void change_bit(volatile uint8_t *, unsigned char, unsigned char);
 void change_direction(unsigned int duration, unsigned char direction, unsigned char synchronized);
  
 unsigned int threshold = 0;
 unsigned int result = 0;
- 
+unsigned int delay = 0;
+unsigned int target_delay = 0;
+bool delaying = 0;
+
 int main(void) {   
     DDRD |= (1 << M1A) | (1 << M1B) | (1 << M2A) | (1 << M2B);
     DDRB |= (1 << SPEED_PIN);
 
     setup_ADC();
     setup_PWM();
+    setup_timer();
 
     //OCR1A = 128; // Sets PWM to 50% duty cycle
 
@@ -46,19 +52,33 @@ int main(void) {
         threshold = get_ADC(1);                                            // gets result of pot threshold
 		result = get_ADC(0);                                               // Get the result of the IR ADC
 		//PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
-        if(result >= threshold) {
-            PORTD &= ~(1 << M2E); // turn off right wheel
-            change_direction(500, 0x01, 0); // reverse left wheel for half a second and then continue
+        if(delay >= targetDelay) {
             change_direction(0, 0x01, 2);   // continue going straight
+        } else if(result >= threshold) { // Runs only if we aren't delaying
+            PORTD &= ~(1 << M2E); // turn off right wheel
+            change_direction(500, 0x01, 0);
         }
     }
 }
- 
+
 // Sets up ADC
 void setup_ADC(void)
 {
     ADCSRA = (1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // Enable ADC | Set Prescaler Bits (0-2) to 111 (128 ticks of system clock is 1 tick for the ADC (i think))
     ADMUX = (1<<REFS0);                                  // Set voltage reference to AVcc with external cap at AREF pin
+}
+
+// Sets up timer and interrupt
+void setup_timer(void) {
+    TCCR0A |= (1 << COM0A1); // Set timer mode to clear on compare
+    TCCR0B |= (1 << CS02) | (1 << CS00); // Set timer prescalar to 1024
+    OCR0A = 97;              // Set compare value to 97 ticks (976 ticks in 1 second with the prescalar set to 1024) as clock is at ~ 1MHz
+    TIMSK0 = (1 << OCIE0A);  // Enable interupt
+    sei();                   // Enable global interrupt
+}
+
+ISR(TIMER0_COMPA_vect) {
+    delay++;
 }
 
 // Sets up PWM for Port B1
@@ -103,7 +123,7 @@ void change_direction(unsigned int duration, unsigned char direction, unsigned c
         PORTD |= synchronized ? (direction << M1A) : (direction << M2A); // Writes the 0s in the direction
     }
 
-	for(int i = 0; i < duration; i++) _delay_ms(1); 
-    change_direction(0, 0b11, 2); // break robot
+    target_delay = duration;
+    TCNT0 = 0;
 }
 
