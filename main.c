@@ -56,7 +56,7 @@ void setup_ADC(void)
 void setup_PWM(void) {
     TCCR1B  |= (1 << CS12); // Sets Prescaler for timer 1 to 256
     TCCR1A  = (1 << COM1A1) & ~(1 << COM1A0); // Defines that when a match occurrs to update the PWM when the timer goes to 0 again
-    TCCR1A |= (1 << WGM11) | (1 << WGM10); // Turns on fast PWM mode
+    TCCR1A |= (1 << WGM12) | (1 << WGM10); // Turns on fast PWM mode
 }
  
 // Gets the ADC value from analog pin channel
