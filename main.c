@@ -106,4 +106,3 @@ void change_direction(unsigned int duration, unsigned char direction, unsigned c
 	for(int i = 0; i < duration; i++) _delay_ms(1); 
     change_direction(0, 0b11, 2); // break robot
 }
-
