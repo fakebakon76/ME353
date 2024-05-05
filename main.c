@@ -22,6 +22,9 @@
 #define M2E 3
 #define M2A 4
 #define M2B 5
+#define POT 1
+#define IR1 0
+#define IR2 2
  
 void setup_ADC(void);
 void setup_PWM(void);
@@ -30,10 +33,7 @@ unsigned int get_ADC(unsigned char);
 void change_bit(volatile uint8_t *, unsigned char, unsigned char);
 void change_direction(unsigned int duration, unsigned char direction, unsigned char synchronized);
  
-unsigned int threshold = 0;
-unsigned int result = 0;
-unsigned int delay = 0;
-unsigned int target_delay = 0;
+unsigned int threshold = 0, ir1 = 0, ir2 = 0, delay = 0, target_delay = 0;
  
 int main(void) {
 	DDRD |= (1 << M1A) | (1 << M1B) | (1 << M2A) | (1 << M2B);
@@ -48,14 +48,15 @@ int main(void) {
  
 	// Occurs from now till infinity
 	while(1) {
-		threshold = get_ADC(1);                                            // gets result of pot threshold
-		result = get_ADC(0);                                               // Get the result of the IR ADC
-		//PORTD = (result >= threshold) ? (PORTD | 0x01) : (PORTD & ~0x01);  // Outputs to port d bit 1
-		if(delay > target_delay && result < threshold) {
+		threshold = get_ADC(POT);                                            // gets ir1 of pot threshold
+		ir1 = get_ADC(IR1);                                               // Get the result of the IR ADC
+		ir2 = get_ADC(IR2);                                               // Get the result of the IR ADC
+        
+		if(delay > target_delay && ir1 < threshold && ir2 < threshold) {
 			change_direction(0, 0b10, 2);   // continue going straight
 			target_delay = 0;
 			delay = 0;
-		} else if(result >= threshold) { // Runs only if we aren't delaying
+		} else if(ir1 >= threshold | ir2 >= threshold) { // Runs only if we aren't delaying
 			change_direction(0, 0b11, 1);
 			change_direction(1000, 0b10, 0);
 		}
