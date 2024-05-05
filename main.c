@@ -2,13 +2,12 @@
  
 /* Pins:
 *      Port D      - Output
-*      Port D, 0   - Motor 1 Enable
 *      Port D, 1-2 - Motor 1 Control
-*      Port D, 3   - Motor 2 Enable
-*      Port D, 4-5 - Motor 2 Control
-*      Port C, 0   - IR Sensor
+*      Port D, 3-4 - Motor 2 Control
+*      Port C, 0   - IR Sensor Front
 *      Port C, 1   - Potentiometer
-*      Port B, 1   - PWM For Motor
+*      Port C, 0   - IR Sensor Back
+*      Port B, 1   - PWM For Motors
 */
  
 #include <xc.h>
@@ -16,12 +15,10 @@
 #include <avr/interrupt.h>
  
 #define SPEED_PIN 1
-#define M1E 0
 #define M1A 1
 #define M1B 2
-#define M2E 3
-#define M2A 4
-#define M2B 5
+#define M2A 3
+#define M2B 4
 #define POT 1
 #define IR1 0
 #define IR2 2
@@ -43,7 +40,7 @@ int main(void) {
 	setup_PWM();
 	setup_timer();
  
-	//OCR1A = 128; // Sets PWM to 50% duty cycle
+	OCR1A = 128; // Sets PWM to 50% duty cycle
 	change_direction(0, 0b10, 2);   // continue going straight
  
 	// Occurs from now till infinity
@@ -117,8 +114,8 @@ void change_bit(volatile uint8_t *SFR, unsigned char my_bit, unsigned char bit_v
 */
 void change_direction(unsigned int duration, unsigned char direction, unsigned char synchronized) {
 	if(synchronized == 2) {
-		PORTD &= ~((~direction << M1A) | (~direction << M2A)); // AND it to get the 0s in place
-		PORTD |= (direction << M1A) | (direction << M2A);     // OR it to get the 1s in place
+		PORTD &= ~((~direction << M1A) | ~(~direction << M2A)); // AND it to get the 0s in place
+		PORTD |= (direction << M1A) | ~(direction << M2A);     // OR it to get the 1s in place
 		} else {
 		PORTD &= synchronized ? ~(~direction << M1A) : ~(~direction << M2A); // Writes the 1s in the direction
 		PORTD |= synchronized ? (direction << M1A) : (direction << M2A); // Writes the 0s in the direction
