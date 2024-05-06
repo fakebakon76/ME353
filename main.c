@@ -124,7 +124,7 @@ void change_bit(volatile uint8_t *SFR, unsigned char my_bit, unsigned char bit_v
 void change_direction(unsigned int duration, unsigned char direction, unsigned char synchronized) {
 	if(synchronized == 2) {
 		PORTD &= ~((~direction << M1A) | ~(direction << M2A)); // AND it to get the 0s in place
-		PORTD |= (direction << M1A) | ~(~direction << M2A);     // OR it to get the 1s in place
+		PORTD |= (direction << M1A) | (~direction << M2A);     // OR it to get the 1s in place
 		} else {
 		PORTD &= synchronized ? ~(~direction << M1A) : ~(~direction << M2A); // Writes the 1s in the direction
 		PORTD |= synchronized ? (direction << M1A) : (direction << M2A); // Writes the 0s in the direction
