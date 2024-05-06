@@ -29,8 +29,8 @@ void setup_timer(void);
 unsigned int get_ADC(unsigned char);
 void change_bit(volatile uint8_t *, unsigned char, unsigned char);
 void change_direction(unsigned int duration, unsigned char direction, unsigned char synchronized);
- 
-unsigned int threshold = 0, ir1 = 0, ir2 = 0, delay = 0, target_delay = 0;
+
+unsigned int threshold = 0, ir1 = 0, ir2 = 0, delay = 0, target_delay = 0, in_reverse = 0;
  
 int main(void) {
 	DDRD |= (1 << M1A) | (1 << M1B) | (1 << M2A) | (1 << M2B);
@@ -49,14 +49,23 @@ int main(void) {
 		ir1 = get_ADC(IR1);                                               // Get the result of the IR ADC
 		ir2 = get_ADC(IR2);                                               // Get the result of the IR ADC
         
-		if(delay > target_delay && ir1 < threshold && ir2 < threshold) {
-			change_direction(0, 0b10, 2);   // continue going straight
-			target_delay = 0;
+		if(delay > target_delay && ir1 < threshold && ir2 < threshold) 
+        {
+			if(in_reverse) {
+                change_direction(0, 0b11, 1);
+                change_direction(250, 0b10, 0);
+                in_reverse = 0;
+            } else 
+                change_direction(0, 0b10, 2);   // continue going straight
+			
+            target_delay = 0;
 			delay = 0;
-		} else if(ir1 >= threshold | ir2 >= threshold) { // Runs only if we aren't delaying
-			change_direction(0, 0b11, 1);
-			change_direction(1000, 0b10, 0);
-		}
+		} 
+        else if(ir1 >= threshold | ir2 >= threshold) // Runs only if we aren't delaying
+        { 			
+            change_direction(1000, 0b01, 2);
+            in_reverse = 1;
+        }
 	}
 }
  
@@ -123,4 +132,5 @@ void change_direction(unsigned int duration, unsigned char direction, unsigned c
 
 	target_delay = duration/333; // I divide by 333 so that the 1 duration is 1 ms
 	TCNT0 = 0;
+    delay = 0;
 }
